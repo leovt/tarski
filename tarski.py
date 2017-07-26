@@ -295,7 +295,7 @@ class ProofContext():
         assert all(any(x in y for y in self.freevars) for x in fact.free())
         try:
             [self.facts[r] for r in references]
-        except KeyError, e:
+        except KeyError as e:
             assert False, 'Missing Fact %s' % (e.args)
         number = next(self.fact_number)
         self.facts[fact] = (fact, number, justification, references, evidence)
@@ -303,7 +303,7 @@ class ProofContext():
             ref = ''
         else:
             ref = '(%s)' % ', '.join(str(self.facts[r][1]) for r in references)
-        print number, '  '*len(self.assumptions), fact, justification, ref
+        print(number, '  '*len(self.assumptions), fact, justification, ref)
 
     def start_context(self, number_of_variables):
         variables = [Term() for i in range(number_of_variables)]
