@@ -1,7 +1,5 @@
-from formula import Term, BinaryConnective
+from formula import Term
 from itertools import count
-
-from tarski import axioms
 
 class DictStack(dict):
     def __init__(self, parent=None):
@@ -22,7 +20,7 @@ class DictStack(dict):
 
 
 class ProofContext():
-    def __init__(self):
+    def __init__(self, axioms):
         self.fact_number = count(1)
         self.facts = DictStack()
         self.freevars = []
@@ -68,8 +66,8 @@ class ProofContext():
         else:
             conditions = assump[0]
             for x in assump[1:]:
-                conditions = BinaryConnective(conditions, '&', x)
-            new_fact = BinaryConnective(conditions, '->', fact)
+                conditions = conditions & x
+            new_fact = conditions > fact
         new_fact = new_fact.generalize(freevars)
         evidence = dict(self.facts)
         self.facts = self.facts.pop()
@@ -84,7 +82,7 @@ class ProofContext():
         return new_fact
 
     def conjunction(self, left, right):
-        new_fact = BinaryConnective(left, '&', right)
+        new_fact = left & right
         self._add(new_fact, 'conjunction', (left, right))
         return new_fact
 

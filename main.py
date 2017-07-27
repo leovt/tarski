@@ -2,7 +2,7 @@ from proof import ProofContext
 from tarski import axioms, Congruent, Equal, Between
 
 
-p = ProofContext()
+p = ProofContext(axioms)
 x,y = p.start_context(2)
 F1 = p.specialise(axioms[1], (x,y,y,x,y,x))
 F2 = p.specialise(axioms[0], (x,y))
