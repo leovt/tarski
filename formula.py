@@ -181,7 +181,7 @@ class UniversalQuantifier(Formula):
     def _string(self, names):
         for b in self.terms:
             assert b not in names
-        new_names = (t for t in bound_term_symbols() if t not in names)
+        new_names = (t for t in bound_term_symbols() if t not in names.values())
         new_names_map = {b:t for b,t in zip(self.terms, new_names)}
         new_names_map.update(names)
         return 'A%s: %s' % (','.join(new_names_map[t] for t in self.terms), self.formula._string(new_names_map))
@@ -222,7 +222,7 @@ class ExistentialQuantifier(Formula):
     def _string(self, names):
         for b in self.terms:
             assert b not in names
-        new_names = (t for t in bound_term_symbols() if t not in names)
+        new_names = (t for t in bound_term_symbols() if t not in names.values())
         new_names_map = {b:t for b,t in zip(self.terms, new_names)}
         new_names_map.update(names)
         return 'E%s: %s' % (','.join(new_names_map[t] for t in self.terms), self.formula._string(new_names_map))
