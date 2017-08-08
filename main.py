@@ -1,9 +1,16 @@
 from proof import ProofContext
-from tarski import axioms, Congruent, Equal, Between
+from tarski import axioms, Congruent, Equal, Between, equality_axioms
 from formula import (UniversalQuantifier as ForAll,
                      ExistentialQuantifier as Exists)
 
-p = ProofContext(axioms)
+p = ProofContext(axioms+equality_axioms)
+x,y = p.start_context(2)
+E1 = p.assume(Equal(x,y))
+E2 = p.specialise(equality_axioms[0], (x,))
+E3 = p.substitute_equal(E2, Equal(y,x), E1)
+symmetry_equal = p.directproof(E3)
+assert symmetry_equal == ForAll((1,2), Equal(1,2) > Equal(2,1))
+
 x,y = p.start_context(2)
 F1 = p.specialise(axioms[1], (y,x,x,y,x,y))
 F2 = p.specialise(axioms[0], (y,x))
@@ -40,3 +47,30 @@ p.conjunction(X1, X0)
 X3 = p.modus_ponens(X2)
 Thm_2_4 = p.directproof(X3)
 assert Thm_2_4 == ForAll((1,2,3,4), Congruent(1,2,3,4)>Congruent(2,1,3,4))
+
+import formula
+formula.symbol_map[:] = [formula.SymbolMap() for _ in formula.symbol_map]
+
+a,b,c,d = p.start_context(4)
+X0 = p.assume(Congruent(a,b,c,d))
+X1 = p.specialise(Thm_2_2, (a,b,c,d))
+X2 = p.specialise(Thm_2_4, (c,d,a,b))
+X3 = p.specialise(Thm_2_2, (d,c,a,b))
+X4 = p.modus_ponens(X1)
+X5 = p.modus_ponens(X2)
+X6 = p.modus_ponens(X3)
+Thm_2_5 = p.directproof(X6)
+assert Thm_2_5 == ForAll((1,2,3,4), Congruent(1,2,3,4) > Congruent(1,2,4,3))
+
+formula.symbol_map[:] = [formula.SymbolMap() for _ in formula.symbol_map]
+a,b = p.start_context(2)
+str(a), str(b)
+X1 = p.specialise(axioms[3], (b,a,b,b))
+(c,), X2 = p.instantiate(X1)
+str(c)
+X2b = p.deduce_right(X2)
+X3 = p.specialise(axioms[2], (a,c,b))
+X4 = p.modus_ponens(X3)
+X5 = p.substitute_equal(X2b, Congruent(a,a,b,b), X4)
+Thm_2_8 = p.directproof(X5)
+assert Thm_2_8 == ForAll((1,2), Congruent(1,1,2,2))
