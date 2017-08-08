@@ -5,9 +5,15 @@ from formula import (Predicate,
 
 Equal = Predicate('Equal', 2, '{} = {}')
 Congruent = Predicate('Congruent', 4, '{}{}~{}{}')
-Between = Predicate('Between', 3, '({1} in {0}{2})')
+Between = Predicate('Between', 3, 'B{0}{1}{2}')
 
 x,y,r,s,t,u = Term(), Term(), Term(), Term(), Term(), Term()
+
+equality_axioms = [
+    ForAll((x,), Equal(x,x))
+]
+
+
 x1,y1,r1,s1 = 1,2,3,4
 axioms = [
     ForAll((x,y), Congruent(x,y,y,x)),
