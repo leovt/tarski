@@ -50,7 +50,10 @@ class Formula(object):
         return (len(free), len(bound), self._serialize(varids))
 
     def generalize(self, terms):
-        return UniversalQuantifier(terms, self)
+        if terms:
+            return UniversalQuantifier(terms, self)
+        else:
+            return self
 
     def __str__(self):
         names = {x:str(x) for x in self.free()}
