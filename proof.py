@@ -74,6 +74,15 @@ class ProofContext():
         self.facts = self.facts.pop()
         self._add(new_fact, 'direct proof', (), evidence)
         return new_fact
+    
+    def disjunction_elimination(self, P, Q, R):
+        self._add(R, 'disjunction elimination', [P>R, Q>R, P|Q])
+        return R
+        
+    def tertium_non_datur(self, P):
+        fact = P | -P
+        self._add(fact, 'tertium non datur', [])
+        return fact
 
     def specialise(self, fact, subs):
         new_fact = fact
