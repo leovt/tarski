@@ -74,3 +74,16 @@ X4 = p.modus_ponens(X3)
 X5 = p.substitute_equal(X2b, Congruent(a,a,b,b), X4)
 Thm_2_8 = p.directproof(X5)
 assert Thm_2_8 == ForAll((1,2), Congruent(1,1,2,2))
+
+def AFS(a,b,c,d,a1,b1,c1,d1):
+    '''Definition 2.10: part of the condition for axiom 5'''
+    return (Between(a,b,c) & Between(a1,b1,c1)
+            & Congruent(a,b,a1,b1)
+            & Congruent(b,c,b1,c1)
+            & Congruent(a,d,a1,d1)
+            & Congruent(b,d,b1,d1))
+
+assert axioms[4] == ForAll((11,12,13,14,21,22,23,24), 
+                           -Equal(11,12) & 
+                           AFS(11,12,13,14,21,22,23,24) 
+                           > Congruent(13,14,23,24))
