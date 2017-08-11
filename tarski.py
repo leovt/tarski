@@ -27,12 +27,12 @@ axioms = [
     
     # Fünf-Strecken-Axiom
     ForAll((x,y,r,s,x1,y1,r1,s1),
-           -Equal(x,y) &
+           -Equal(x,y) & (
            Between(x,y,r) & Between(x1,y1,r1) &
            Congruent(x,y,x1,y1) &
            Congruent(y,r,y1,r1) &
            Congruent(x,s,x1,s1) &
-           Congruent(y,s,y1,s1) 
+           Congruent(y,s,y1,s1))
            > Congruent(r,s,r1,s1)),
 
     # Identitätsaxiom für die Zwischenbeziehung
