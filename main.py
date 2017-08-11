@@ -62,6 +62,13 @@ X6 = p.modus_ponens(X3)
 Thm_2_5 = p.directproof(X6)
 assert Thm_2_5 == ForAll((1,2,3,4), Congruent(1,2,3,4) > Congruent(1,2,4,3))
 
+a,b,c,d = p.start_context(4)
+X0 = p.assume(Congruent(a,b,c,d))
+X1 = p.modus_ponens(p.specialise(Thm_2_4, (a,b,c,d)))
+X2 = p.modus_ponens(p.specialise(Thm_2_5, (b,a,c,d)))
+Thm_2_5_bis = p.directproof(X2)
+assert Thm_2_5_bis == ForAll((1,2,3,4), Congruent(1,2,3,4) > Congruent(2,1,4,3))
+
 formula.symbol_map[:] = [formula.SymbolMap() for _ in formula.symbol_map]
 a,b = p.start_context(2)
 str(a), str(b)
