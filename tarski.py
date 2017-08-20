@@ -39,7 +39,7 @@ axioms = [
     ForAll((x,y), Between(x,y,x) > Equal(x,y)),
     
     # Axiom von Pasch, innere Form
-    ForAll((x,y,r,s,t), Between(x,r,t) & Between(x,s,t) > Exists((u,), Between(r,u,y) & Between(s,u,x))),
+    ForAll((x,y,r,s,t), Between(x,r,t) & Between(y,s,t) > Exists((u,), Between(r,u,y) & Between(s,u,x))),
 
     # unteres Dimensionsaxiom
     Exists((r,s,t), -Between(r,s,t) & -Between(s,t,r) & -Between(t,r,s)),
