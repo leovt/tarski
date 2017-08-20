@@ -129,6 +129,8 @@ class ProofContext():
         return new_formula
         
     def modus_ponens(self, implication):
-        assert implication.connective == '->'
-        self._add(implication.right, 'modus ponens', (implication, implication.left))
-        return implication.right
+        return self.modus_ponens2(implication.left, implication.right)
+    
+    def modus_ponens2(self, P, Q):
+        self._add(Q, 'modus ponens', [P>Q, P])
+        return Q
