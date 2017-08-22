@@ -138,6 +138,13 @@ Thm_3_1 = p.directproof(A6)
 assert Thm_3_1 == ForAll((1,2), Between(1,2,2))
 
 a,b,c = p.start_context(3)
-p.assume(Between(a,b,c))
-p.specialise(Thm_3_1, (b,c))
-p.modus_ponens(p.specialise(axioms[6], ()))
+p.conjunction(
+    p.assume(Between(a,b,c)),
+    p.specialise(Thm_3_1, (b,c)))
+A1=p.modus_ponens(p.specialise(axioms[6], (a,b,b,c,c)))
+(x,),A2=p.instantiate(A1)
+p.deduce_left(A2)
+A3 = p.modus_ponens(p.specialise(axioms[5], (b,x)))
+A4 = p.substitute_equal(p.deduce_right(A2), Between(c,b,a), A3)
+Thm_3_2 = p.directproof(A4)
+assert Thm_3_2 == ForAll((1,2,3), Between(1,2,3) > Between(3,2,1))
