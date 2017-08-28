@@ -1,4 +1,4 @@
-from formula import Term, ExistentialQuantifier
+from formula import Term, ExistentialQuantifier, TermContext, FreeTerm
 from itertools import count
 from tarski import Equal
 
@@ -26,6 +26,7 @@ class ProofContext():
         self.facts = DictStack()
         self.freevars = []
         self.assumptions = []
+        self.term_ctx = TermContext()
         
         for axiom in axioms:
             self._add(axiom, 'Axiom')
@@ -45,12 +46,17 @@ class ProofContext():
             ref = '(%s)' % ', '.join(str(self.facts[r][1]) for r in references)
         print(number, '  '*len(self.assumptions), fact, justification, ref)
 
-    def start_context(self, number_of_variables):
-        variables = [Term() for i in range(number_of_variables)]
+    def _start_context(self, variables):
         self.facts = self.facts.push()
         self.freevars.append(variables)
         self.assumptions.append([])
         return variables
+
+    def start_context(self, number_of_variables):
+        return self._start_context([FreeTerm(self.term_ctx) for _ in range(number_of_variables)])
+
+    def start_context_names(self, names):
+        return self._start_context([FreeTerm(self.term_ctx, n) for n in names])
 
     def assume(self, fact):
         self.assumptions[-1].append(fact)
@@ -73,6 +79,8 @@ class ProofContext():
         evidence = dict(self.facts)
         self.facts = self.facts.pop()
         self._add(new_fact, 'direct proof', (), evidence)
+        for var in freevars:
+            self.term_ctx.discard(var)
         return new_fact
     
     def disjunction_elimination(self, P, Q, R):
@@ -91,9 +99,13 @@ class ProofContext():
         self._add(new_fact, 'universal specialisation', [fact])
         return new_fact
     
-    def instantiate(self, fact):
+    def instantiate(self, fact, hint=None):
         assert isinstance(fact, ExistentialQuantifier)
-        subs = [(var,Term()) for var in fact.bound()]
+        if hint is None:
+            subs = [(var, FreeTerm(self.term_ctx)) for var in fact.bound()]
+        else:
+            assert len(hint) == len(fact.bound())
+            subs = [(var, FreeTerm(self.term_ctx, hint)) for var,hint in zip(fact.bound(), hint)]
         new_vars = [t for _,t in subs]
         self.freevars[-1].extend(new_vars)
         subs = dict(subs)

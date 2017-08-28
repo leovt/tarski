@@ -1,4 +1,8 @@
 from itertools import count
+from heapq import heappop, heappush, heapify
+
+SRC_HINT = object()
+SRC_GENERATOR = object()
 
 def bound_term_symbols():
     for s in 'xyrstuvwz':
@@ -27,6 +31,58 @@ symbol_map = [SymbolMap()]
 class Term(object):
     def __str__(self):
         return symbol_map[-1][self]
+
+
+class FreeTerm(Term):
+    def __init__(self, ctx, hint=None):
+        self.hint = hint
+        self.ctx = ctx
+        
+    def __str__(self):
+        return self.ctx.get_name(self, self.hint)
+
+class TermContext(object):
+    def __init__(self):
+        self._names = {}
+        self._used_names = {}
+        self._free_names = []
+        self._gen_names = iter(free_term_symbols())
+        self._discarded = set()
+        
+    def get_name(self, var, hint=None):
+        if var in self._discarded:
+            raise ValueError('reusing discarded variable')
+        if var not in self._names:
+            if hint and hint not in self._used_names:
+                if hint in self._free_names:
+                    self._free_names.remove(hint)
+                    heapify(self._free_names)
+                name = hint
+                src = SRC_HINT
+            elif self._free_names:
+                name = heappop(self._free_names)
+                src = SRC_GENERATOR
+            else:
+                name = next(self._gen_names)
+                while name in self._names:
+                    name = next(self._gen_names)
+                src = SRC_GENERATOR
+            assert name not in self._used_names
+            self._names[var] = name
+            self._used_names[name] = src
+        return self._names[var]
+    
+    def discard(self, var):
+        if var in self._discarded:
+            raise ValueError('cannot discard again')
+        if var in self._names:
+            name = self._names[var]
+            self._discarded.add(var)
+            src = self._used_names.pop(name)
+            if src is SRC_GENERATOR:
+                heappush(self._free_names, self._names[var])
+            del self._names[var]
+            
 
 '''first order logic formulas'''
 
