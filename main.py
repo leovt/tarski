@@ -300,19 +300,10 @@ def Thm_3_7_1():
     Bacx = p.deduce_left(BC)
     p.conjunction(Babc, Bacx)
     Bbcx = p.modus_ponens(p.specialise(Thm_3_6_1, (a,b,c,x)))
-    p.conjunction(
-        p.conjunction(
-            p.conjunction(
-                p.conjunction(b_neq_c,Bbcx),
-                p.deduce_right(BC)),
-            Bbcd),
-        p.specialise(Thm_2_1, (c,d)))
-    x_eq_d = p.modus_ponens(p.specialise(Thm_2_12, (b,c,c,d,x,d)))
+    p.specialise(Thm_2_1, (c,d))
+    p.deduce_right(BC)
+    th = p.specialise(Thm_2_12, (b,c,c,d,x,d))
+    p.auto_conjunction(th.left)
+    x_eq_d = p.modus_ponens(th)
     p.substitute_equal(Bacx, Between(a,c,d), x_eq_d)
     return p.directproof(Between(a,c,d))
-
-
-# @theorem(ForAll((1,2,3,4,5,6),
-#     -Equal(1,2) &
-#     Between(1,2,5) & Congruent(2,5,3,4) &
-#     Between(1,2,6) & Congruent(2,6,3,4) > Equal(5,6)))

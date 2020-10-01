@@ -1,4 +1,4 @@
-from formula import Term, ExistentialQuantifier, TermContext, FreeTerm
+from formula import Term, ExistentialQuantifier, TermContext, FreeTerm, BinaryConnective
 from itertools import count
 from tarski import Equal
 
@@ -27,7 +27,7 @@ class ProofContext():
         self.freevars = []
         self.assumptions = []
         self.term_ctx = TermContext()
-        
+
         for axiom in axioms:
             self._add(axiom, 'Axiom')
 
@@ -82,11 +82,11 @@ class ProofContext():
         for var in freevars:
             self.term_ctx.discard(var)
         return new_fact
-    
+
     def disjunction_elimination(self, P, Q, R):
         self._add(R, 'disjunction elimination', [P>R, Q>R, P|Q])
         return R
-        
+
     def tertium_non_datur(self, P):
         fact = P | -P
         self._add(fact, 'tertium non datur', [])
@@ -98,7 +98,7 @@ class ProofContext():
             new_fact = new_fact.specialise(i, s)
         self._add(new_fact, 'universal specialisation', [fact])
         return new_fact
-    
+
     def instantiate(self, fact, hint=None):
         assert isinstance(fact, ExistentialQuantifier)
         if hint is None:
@@ -117,7 +117,7 @@ class ProofContext():
         new_fact = left & right
         self._add(new_fact, 'conjunction', (left, right))
         return new_fact
-    
+
     def deduce_left(self, fact):
         assert fact.connective == '&'
         new_fact = fact.left
@@ -129,7 +129,7 @@ class ProofContext():
         new_fact = fact.right
         self._add(new_fact, 'right part of conjunction', [fact])
         return new_fact
-    
+
     def substitute_equal(self, formula, new_formula, identity):
         assert identity.predicate == Equal
         x,y = identity.terms
@@ -139,10 +139,19 @@ class ProofContext():
         assert test1 == test2, (str(test1), str(test2))
         self._add(new_formula, 'equality substitution', [formula, identity])
         return new_formula
-        
+
     def modus_ponens(self, implication):
         return self.modus_ponens2(implication.left, implication.right)
-    
+
     def modus_ponens2(self, P, Q):
         self._add(Q, 'modus ponens', [P>Q, P])
         return Q
+
+    def auto_conjunction(self, conjunction):
+        if conjunction in self.facts:
+            return
+
+        if isinstance(conjunction, BinaryConnective) and conjunction.connective == '&':
+            self.auto_conjunction(conjunction.left)
+            self.auto_conjunction(conjunction.right)
+            self.conjunction(conjunction.left, conjunction.right)
