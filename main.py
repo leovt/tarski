@@ -26,6 +26,15 @@ def symmetry_equal():
     E3 = p.substitute_equal(E2, Equal(y,x), E1)
     return p.directproof(E3)
 
+@theorem(ForAll((1,2), -Equal(1,2) > -Equal(2,1)))
+def symmetry_inequal():
+    "Inquality is symmetric"
+    x,y = p.start_context(2)
+    p.assume(-Equal(x,y))
+    p.specialise(symmetry_equal, (y,x))
+    p.modus_tollens(Equal(y,x), Equal(x,y))
+    return p.directproof(-Equal(y,x))
+
 @theorem(ForAll((1,2), Congruent(1,2,1,2)))
 def Thm_2_1():
     """segment congruence is symmetric."""
@@ -307,3 +316,56 @@ def Thm_3_7_1():
     x_eq_d = p.modus_ponens(th)
     p.substitute_equal(Bacx, Between(a,c,d), x_eq_d)
     return p.directproof(Between(a,c,d))
+
+@theorem(ForAll((1,2,3,4), Between(1,2,4) & Between(2,3,4) >
+                           Between(1,3,4)))
+def Thm_3_5_2():
+    """"""
+    a,b,c,d = p.start_context_names('abcd')
+    A1 = p.assume(Between(a,b,d))
+    p.assume(Between(b,c,d))
+    p.start_context(0)
+    p.substitute_equal(A1, Between(a,c,d), p.assume(Equal(b,c)))
+    p.directproof(Between(a,c,d))
+    p.start_context(0)
+    p.assume(-Equal(b,c))
+    th = p.specialise(Thm_3_5_1, (a,b,c,d))
+    p.auto_conjunction(th.left)
+    p.modus_ponens(th)
+    th = p.specialise(Thm_3_7_1, (a,b,c,d))
+    p.auto_conjunction(th.left)
+    p.modus_ponens(th)
+    p.directproof(Between(a,c,d))
+    p.tertium_non_datur(Equal(b,c))
+    p.disjunction_elimination(Equal(b,c), -Equal(b,c), Between(a,c,d))
+    return p.directproof(Between(a,c,d))
+
+@theorem(ForAll((1,2,3,4), Between(1,2,3) & Between(1,3,4) >
+                           Between(1,2,4)))
+def Thm_3_6_2():
+    """"""
+    a,b,c,d = p.start_context_names('abcd')
+    p.assume(Between(a,b,c))
+    p.assume(Between(a,c,d))
+    p.conjunction(
+        p.modus_ponens(p.specialise(Thm_3_2, (a,c,d))),
+        p.modus_ponens(p.specialise(Thm_3_2, (a,b,c))))
+    p.modus_ponens(p.specialise(Thm_3_5_2, (d,c,b,a)))
+    return p.directproof(p.modus_ponens(p.specialise(Thm_3_2, (d,b,a))))
+
+@theorem(ForAll((1,2,3,4), Between(1,2,3) & Between(2,3,4) & -Equal(2,3) > Between(1,2,4)))
+def Thm_3_7_2():
+    """"""
+    a,b,c,d = p.start_context_names('abcd')
+    p.assume(Between(a,b,c))
+    p.assume(Between(b,c,d))
+    p.assume(-Equal(b,c))
+    p.modus_ponens(p.specialise(Thm_3_2, (a,b,c)))
+    p.modus_ponens(p.specialise(Thm_3_2, (b,c,d)))
+    p.modus_ponens(p.specialise(symmetry_inequal, (b,c)))
+
+    th = p.specialise(Thm_3_7_1, (d,c,b,a))
+    p.auto_conjunction(th.left)
+    p.modus_ponens(th)
+    p.modus_ponens(p.specialise(Thm_3_2, (d,b,a)))
+    return p.directproof(Between(a,b,d))
