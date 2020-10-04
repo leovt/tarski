@@ -147,6 +147,10 @@ class ProofContext():
         self._add(Q, 'modus ponens', [P>Q, P])
         return Q
 
+    def modus_tollens(self, P, Q):
+        self._add(-P, 'modus tollens', [P>Q, -Q])
+        return -P
+
     def auto_conjunction(self, conjunction):
         if conjunction in self.facts:
             return
