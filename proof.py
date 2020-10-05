@@ -113,6 +113,11 @@ class ProofContext():
         self._add(new_fact, 'existential instantiation', [fact])
         return new_vars, new_fact
 
+    def generalize(self, vars, fact):
+        new_fact = ExistentialQuantifier(vars, fact)
+        self._add(new_fact, 'existential generalization', [fact])
+        return new_fact
+
     def conjunction(self, left, right):
         new_fact = left & right
         self._add(new_fact, 'conjunction', (left, right))
