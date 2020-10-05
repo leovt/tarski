@@ -369,3 +369,27 @@ def Thm_3_7_2():
     p.modus_ponens(th)
     p.modus_ponens(p.specialise(Thm_3_2, (d,b,a)))
     return p.directproof(Between(a,b,d))
+
+@theorem(ForAll((1,2,3,4,5,6), Between(1,2,3) & Between(4,5,3) & Between(1,6,4)
+    > Exists((7,), Between(6,7,3) & Between(2,7,5))))
+def Thm_3_17():
+    """Sei 1,4,3 ein Dreieck mit 5 auf der Seite 43 und 2 auf der Seite 31,
+       und 6 auf der Seite 14. Dann gibt es einen Punkt 7 der auf der Strecke
+       25 und auf der Strecke 63 liegt.
+    """
+    a,b,c,a1,b1,p_ = p.start_context_names(['a','b','c',"a'", "b'", 'p'])
+    p.assume(Between(a,b,c))
+    p.assume(Between(a1,b1,c))
+    p.assume(Between(a,p_,a1))
+    p.modus_ponens(p.specialise(Thm_3_2, (a1,b1,c)))
+    p.modus_ponens(p.specialise(Thm_3_2, (a,b,c)))
+    p.conjunction(Between(a,p_,a1), Between(c,b1,a1))
+    (x,), C = p.instantiate(p.modus_ponens(p.specialise(axioms[6], (a,c,p_,b1,a1))), 'x')
+    p.deduce_right(C)
+    p.conjunction(Between(b1,x,a), Between(c,b,a))
+    (q,), D = p.instantiate(p.modus_ponens(p.specialise(axioms[6], (b1,c,x,b,a))), 'q')
+    p.conjunction(p.deduce_left(C), p.deduce_left(D))
+    q_prop = p.conjunction(
+        p.modus_ponens(p.specialise(Thm_3_5_2, (p_,x,q,c))),
+        p.deduce_right(D))
+    return p.directproof(p.generalize((q,), q_prop))
