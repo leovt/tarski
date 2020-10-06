@@ -19,6 +19,13 @@ class DictStack(dict):
         assert self._parent is not None
         return self._parent
 
+    def __contains__(self, key):
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
 
 class ProofContext():
     def __init__(self, axioms):
@@ -78,7 +85,12 @@ class ProofContext():
         new_fact = new_fact.generalize([v for v in freevars if v in new_fact.free()])
         evidence = dict(self.facts)
         self.facts = self.facts.pop()
-        self._add(new_fact, 'direct proof', (), evidence)
+        outer_references = set()
+        for (_fact, _number, _justification, references, _evidence) in evidence.values():
+            for ref in references:
+                if ref not in evidence:
+                     outer_references.add(ref)
+        self._add(new_fact, 'direct proof', list(outer_references), evidence)
         for var in freevars:
             self.term_ctx.discard(var)
         return new_fact
@@ -92,7 +104,13 @@ class ProofContext():
         self._add(fact, 'tertium non datur', [])
         return fact
 
+    def non_contradiction(self, P):
+        self._add(-(P & -P), 'non contradiction', [])
+
+
     def specialise(self, fact, subs):
+        if len(subs) > len(fact.terms):
+            assert f'too many substitutions in {fact} \\ {subs}'
         new_fact = fact
         for i,s in reversed(list(enumerate(subs))):
             new_fact = new_fact.specialise(i, s)
@@ -134,6 +152,13 @@ class ProofContext():
         new_fact = fact.right
         self._add(new_fact, 'right part of conjunction', [fact])
         return new_fact
+
+    def deduce_all(self, fact):
+        if getattr(fact, 'connective', None) != '&':
+            return
+        self.deduce_all(self.deduce_left(fact))
+        self.deduce_all(self.deduce_right(fact))
+
 
     def substitute_equal(self, formula, new_formula, identity):
         assert identity.predicate == Equal
