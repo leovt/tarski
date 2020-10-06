@@ -103,6 +103,21 @@ def Thm_2_5_bis():
     X2 = p.modus_ponens(p.specialise(Thm_2_5, (b,a,c,d)))
     return p.directproof(X2)
 
+def show_congruent(p, a,b,c,d, try_reverse=True):
+    if Congruent(a,b,c,d) in p.facts:
+        return Congruent(a,b,c,d)
+    if a==c and b==d:
+        return p.modus_ponens(p.specialise(Thm_2_1, (a,b)))
+    if Congruent(b,a,c,d) in p.facts:
+        return p.modus_ponens(p.specialise(Thm_2_4, (b,a,c,d)))
+    if Congruent(a,b,d,c) in p.facts:
+        return p.modus_ponens(p.specialise(Thm_2_5, (a,b,d,c)))
+    if Congruent(b,a,d,c) in p.facts:
+        return p.modus_ponens(p.specialise(Thm_2_5_bis, (b,a,d,c)))
+    if try_reverse:
+        if show_congruent(p, c,d,a,b, False):
+            return p.modus_ponens(p.specialise(Thm_2_2, (c,d,a,b)))
+
 @theorem(ForAll((1,2), Congruent(1,1,2,2)))
 def Thm_2_8():
     """all degenerate segments are congruent"""
@@ -370,6 +385,39 @@ def Thm_3_7_2():
     p.modus_ponens(p.specialise(Thm_3_2, (d,b,a)))
     return p.directproof(Between(a,b,d))
 
+
+@theorem(Exists((1,2), -Equal(1,2)))
+def Thm_3_13():
+    """There are at least two distinct points"""
+    p.start_context(0)
+    (a,b,c), D = p.instantiate(axioms[7], 'abc')
+    p.deduce_right(D)
+    p.start_context(0)
+    p.substitute_equal(-Between(c,a,b), -Between(c,a,a), p.assume(Equal(a,b)))
+    p.specialise(Thm_3_1, (c,a))
+    contradiction = p.conjunction(Between(c,a,a),-Between(c,a,a))
+    p.directproof(contradiction)
+    p.non_contradiction(Between(c,a,a))
+    p.modus_tollens(Equal(a,b), contradiction)
+    return p.directproof(p.generalize((a,b), -Equal(a,b)))
+
+@theorem(ForAll((1,2), Exists((3,), Between(1,2,3) & -Equal(2,3))))
+def Thm_3_14():
+    """lines can be extended"""
+    a,b = p.start_context_names('ab')
+    (u,v), neq = p.instantiate(Thm_3_13, 'uv')
+    (c,), con = p.instantiate(p.specialise(axioms[3], (a,b,u,v)), 'c')
+    p.deduce_all(con)
+    p.start_context(0)
+    p.substitute_equal(Congruent(b,c,u,v), Congruent(b,b,u,v), p.assume(Equal(b,c)))
+    p.modus_ponens(p.specialise(Thm_2_2, (b,b,u,v)))
+    p.modus_ponens(p.specialise(axioms[2], (u,v,b)))
+    p.directproof(Equal(u,v))
+    p.modus_tollens(Equal(b,c), Equal(u,v))
+    con = p.conjunction(Between(a,b,c), -Equal(b,c))
+    return p.directproof(p.generalize((c,), con))
+
+
 @theorem(ForAll((1,2,3,4,5,6), Between(1,2,3) & Between(4,5,3) & Between(1,6,4)
     > Exists((7,), Between(6,7,3) & Between(2,7,5))))
 def Thm_3_17():
@@ -393,3 +441,58 @@ def Thm_3_17():
         p.modus_ponens(p.specialise(Thm_3_5_2, (p_,x,q,c))),
         p.deduce_right(D))
     return p.directproof(p.generalize((q,), q_prop))
+
+def IFS(a,b,c,d,a1,b1,c1,d1):
+    """inner five segment configuration"""
+    return (Between(a,b,c) & Between(a1,b1,c1) &
+        Congruent(a,c,a1,c1) &
+        Congruent(b,c,b1,c1) &
+        Congruent(a,d,a1,d1) &
+        Congruent(c,d,c1,d1))
+
+@theorem(ForAll((1,2,3,4,5,6,7,8), IFS(1,2,3,4,5,6,7,8) > Congruent(2,4,6,8)))
+def Thm_4_2():
+    """inner five segment congruence"""
+    a,b,c,d,a1,b1,c1,d1 = p.start_context_names(['a','b','c','d',"a'","b'","c'","d'"])
+    p.deduce_all(p.assume(IFS(a,b,c,d,a1,b1,c1,d1)))
+    p.start_context(0)
+    p.assume(Equal(a,c))
+    p.substitute_equal(Congruent(a,c,a1,c1), Congruent(a,a,a1,c1), Equal(a,c))
+    p.modus_ponens(p.specialise(Thm_2_2, (a,a,a1,c1)))
+    p.modus_ponens(p.specialise(axioms[2], (a1,c1,a)))
+
+    p.substitute_equal(Between(a,b,c), Between(c,b,c), Equal(a,c))
+    p.substitute_equal(Between(a1,b1,c1), Between(c1,b1,c1), Equal(a1,c1))
+    p.modus_ponens(p.specialise(axioms[5], (c,b)))
+    p.modus_ponens(p.specialise(axioms[5], (c1,b1)))
+    p.substitute_equal(Congruent(c,d,c1,d1),Congruent(b,d,c1,d1),Equal(c,b))
+    p.substitute_equal(Congruent(b,d,c1,d1),Congruent(b,d,b1,d1),Equal(c1,b1))
+    p.directproof(Congruent(b,d,b1,d1))
+    p.start_context(0)
+    p.assume(-Equal(a,c))
+    (e,), con = p.instantiate(p.specialise(Thm_3_14, (a,c)), 'e')
+    p.deduce_all(con)
+    (e1,), con = p.instantiate(p.specialise(axioms[3], (a1,c1,c,e)), ["e'"])
+    p.deduce_all(con)
+    show_congruent(p, c,e,c1,e1)
+    show_congruent(p, e,c,e1,c1)
+    show_congruent(p, c,b,c1,b1)
+    p.auto_conjunction(AFS(a,c,e,d,a1,c1,e1,d1))
+    impl = p.specialise(axioms[4], (a,c,e,d,a1,c1,e1,d1))
+    p.auto_conjunction(impl.left)
+    p.modus_ponens(impl)
+    impl = p.specialise(Thm_3_6_1, (a,b,c,e))
+    p.auto_conjunction(impl.left)
+    p.modus_ponens(impl)
+    p.modus_ponens(p.specialise(Thm_3_2, (b,c,e)))
+    impl = p.specialise(Thm_3_6_1, (a1,b1,c1,e1))
+    p.auto_conjunction(impl.left)
+    p.modus_ponens(impl)
+    p.modus_ponens(p.specialise(Thm_3_2, (b1,c1,e1)))
+    p.modus_ponens(p.specialise(symmetry_inequal, (c,e)))
+    impl = p.specialise(axioms[4], (e,c,b,d,e1,c1,b1,d1))
+    p.auto_conjunction(impl.left)
+    p.modus_ponens(impl)
+    p.directproof(Congruent(b,d,b1,d1))
+    p.tertium_non_datur(Equal(a,c))
+    return p.directproof(p.disjunction_elimination(Equal(a,c), -Equal(a,c), Congruent(b,d,b1,d1)))
